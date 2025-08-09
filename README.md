@@ -4,9 +4,9 @@ Yuh
 Date: 2025-08-08
 
 This has been a WIP throughout the week, doing a little bit whenever I can, but here is what I did:
- - Worked through Angular tutorial to understand basic Angular functionality
- - Learned about how API integration in Angular and how to pass data around
- - Angular Material: Google's official design system (I assume this would be like React Bootstrap)
+ - Worked through Angular tutorial to understand basic Angular syntax and functionality
+ - Learned about API integration in Angular and how to pass data around
+ - Looked into Angular Material: Google's official design system (I assume this would be like React Bootstrap)
  - Researched best practice for Angular Containerization, ending up with a specialized Nginx configuration from Docker docs
  - Got the docker-compose.yml file working, able to run a `docker compose` command to set up services
  - TODO: refine data schema, add API endpoints for querying, make my site look pretty
