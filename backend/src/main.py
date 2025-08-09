@@ -1,9 +1,25 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+api_router = APIRouter(prefix="/api")
 
 class UserCreate(BaseModel):
     username: str
@@ -29,22 +45,22 @@ next_id = 1
 def get_db():
     return fake_db
 
-@app.get("/")
+@api_router.get("/")
 async def root():
     return {"message": "Welcome to Distributed Threat Intelligence System", "docs": "/docs"}
 
-@app.get("/users", response_model=List[User])
+@api_router.get("/users", response_model=List[User])
 async def get_users(db: List[User] = Depends(get_db)):
     return db
 
-@app.get("/users/{user_id}", response_model=User)
+@api_router.get("/users/{user_id}", response_model=User)
 async def get_user(user_id: int, db: List[User] = Depends(get_db)):
     for user in db:
         if user.id == user_id:
             return user
     raise HTTPException(status_code=404, detail="User not found")
 
-@app.post("/users", response_model=User, status_code=201)
+@api_router.post("/users", response_model=User, status_code=201)
 async def create_user(user_data: UserCreate, db: List[User] = Depends(get_db)):
     global next_id
     new_user = User(
@@ -60,7 +76,7 @@ async def create_user(user_data: UserCreate, db: List[User] = Depends(get_db)):
     next_id += 1
     return new_user
 
-@app.put("/users/{user_id}", response_model=User)
+@api_router.put("/users/{user_id}", response_model=User)
 async def update_user(
     user_id: int,
     user_data: UserUpdate,
@@ -74,10 +90,12 @@ async def update_user(
             return updated_user
     raise HTTPException(status_code=404, detail="User not found")
 
-@app.delete("/users/{user_id}")
+@api_router.delete("/users/{user_id}")
 async def delete_user(user_id: int, db: List[User] = Depends(get_db)):
     for i, user in enumerate(db):
         if user.id == user_id:
             deleted_user = db.pop(i)
             return {"message": f"User '{deleted_user.username}' deleted successfully"}
     raise HTTPException(status_code=404, detail="User not found")
+
+app.include_router(api_router)
