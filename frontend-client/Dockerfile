@@ -1,4 +1,7 @@
-FROM node:20-alpine AS build
+ARG NODE_VERSION=22.14.0-alpine
+ARG NGINX_VERSION=alpine3.21
+
+FROM node:${NODE_VERSION} AS builder
 
 WORKDIR /app
 
@@ -8,13 +11,13 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 COPY . .
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged::alpine AS runner
+FROM nginxinc/nginx-unprivileged:${NGINX_VERSION} AS runner
 
 USER nginx
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-COPY --chown=nginx:nginx --from=build /app/dist/*/browser /usr/share/nginx/html
+COPY --chown=nginx:nginx --from=builder /app/dist/*/browser /usr/share/nginx/html
 
 EXPOSE 8080
 
