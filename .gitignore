@@ -15,3 +15,8 @@ example*
 # Logs
 logs/
 *.log
+
+# Python
+venv/
+__pychache__/
+.vscode/
