@@ -1,95 +1,56 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from typing import List
-from uuid import UUID
+from typing import List, Optional
+import uuid
 
-from ..database import get_db
-from ..models.organization import Organization
-from ..schemas.organization import OrganizationCreate, OrganizationUpdate, OrganizationResponse
+from src.dependencies import get_database
+from src.services.organization_service import OrganizationService
+from src.schemas.organization import OrganizationCreate, OrganizationUpdate, OrganizationResponse
 
 router = APIRouter()
 
 @router.get("/", response_model=List[OrganizationResponse])
 async def get_organizations(
-    skip: int = 0,
-    limit: int = 100,
-    db: AsyncSession = Depends(get_db)
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    db: AsyncSession = Depends(get_database)
 ):
     """Get all organizations with pagination"""
-    result = await db.execute(select(Organization).offset(skip).limit(limit))
-    organizations = result.scalars().all()
-    return organizations
+    org_service = OrganizationService(db)
+    orgs = await org_service.get_organizations(
+        skip=skip,
+        limit=limit
+    )
+    return orgs
 
 @router.get("/{org_id}", response_model=OrganizationResponse)
-async def get_organization(org_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_organization(org_id: uuid.UUID, db: AsyncSession = Depends(get_database)):
     """Get a specific organization by ID"""
-    result = await db.execute(select(Organization).filter(Organization.id == org_id))
-    organization = result.scalar_one_or_none()
-    if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization not found"
-        )
-    return organization
+    org_service = OrganizationService(db)
+    org = await org_service.get_organization(org_id)
+    return org
 
 @router.post("/", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
-async def create_organization(org_data: OrganizationCreate, db: AsyncSession = Depends(get_db)):
+async def create_organization(org_data: OrganizationCreate, db: AsyncSession = Depends(get_database)):
     """Create a new organization"""
-    # Check if organization already exists
-    result = await db.execute(select(Organization).filter(Organization.name == org_data.name))
-    existing_org = result.scalar_one_or_none()
-    
-    if existing_org:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Organization with this name already exists"
-        )
-    
-    db_org = Organization(
-        name=org_data.name,
-        tier=org_data.tier
-    )
-    
-    db.add(db_org)
-    await db.commit()
-    await db.refresh(db_org)
-    return db_org
+    org_service = OrganizationService(db)
+    org = await org_service.create_organization(org_data)
+    return org
 
 @router.put("/{org_id}", response_model=OrganizationResponse)
 async def update_organization(
-    org_id: UUID,
+    org_id: uuid.UUID,
     org_data: OrganizationUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_database)
 ):
     """Update an organization"""
-    result = await db.execute(select(Organization).filter(Organization.id == org_id))
-    organization = result.scalar_one_or_none()
-    if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization not found"
-        )
-    
-    update_data = org_data.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(organization, field, value)
-    
-    await db.commit()
-    await db.refresh(organization)
-    return organization
+    org_service = OrganizationService(db)
+    org = await org_service.update_organization(org_id, org_data)
+    return org
 
-@router.delete("/{org_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_organization(org_id: UUID, db: AsyncSession = Depends(get_db)):
+@router.delete("/{org_id}", status_code=204)
+async def delete_organization(org_id: uuid.UUID, db: AsyncSession = Depends(get_database)):
     """Delete an organization"""
-    result = await db.execute(select(Organization).filter(Organization.id == org_id))
-    organization = result.scalar_one_or_none()
-    if not organization:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization not found"
-        )
-    
-    await db.delete(organization)
-    await db.commit()
-    return None
+    org_service = OrganizationService(db)
+    await org_service.delete_organization(org_id)
+    return
