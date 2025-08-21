@@ -64,8 +64,7 @@ class UserService:
         return user
     
     async def update_user(self, user_id: uuid.UUID, user_data: UserUpdate) -> User:
-        statement = select(User).where(User.id == user_id)
-        result = await self.db.execute(statement)
+        result = await self.db.get(User, user_id)
         user = result.scalars().first()
 
         if not user:
@@ -79,7 +78,7 @@ class UserService:
         await self.db.refresh(user)
         return user
     
-    async def delete_user(self, user_id: uuid.UUID):
+    async def delete_user(self, user_id: uuid.UUID) -> None:
         user = await self.db.get(User, user_id)
 
         if not user:
