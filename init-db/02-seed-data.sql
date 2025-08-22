@@ -13,11 +13,11 @@ VALUES
   ('User');
 
 -- Insert users --
-INSERT INTO users (id, email, organization_id, role_id)
+INSERT INTO users (id, first_name, last_name, email, organization_id, role_id)
 VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'alice@acme.com', '11111111-1111-1111-1111-111111111111', 1),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'bob@beta.com', '22222222-2222-2222-2222-222222222222', 2),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'carol@gamma.com', '33333333-3333-3333-3333-333333333333', 3);
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Alice', 'Abcd', 'alice@acme.com', '11111111-1111-1111-1111-111111111111', 1),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Bob', 'Bcde', 'bob@beta.com', '22222222-2222-2222-2222-222222222222', 2),
+  ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Carol', 'Cdef', 'carol@gamma.com', '33333333-3333-3333-3333-333333333333', 3);
 
 -- Insert IOC types --
 INSERT INTO ioc_types (name, category)

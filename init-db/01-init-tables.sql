@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS roles (
 -- Create users table --
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     organization_id UUID REFERENCES organizations(id),
     role_id INTEGER NOT NULL DEFAULT 3 REFERENCES roles(id),
