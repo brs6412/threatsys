@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Create IOCs Type table --
 CREATE TABLE IF NOT EXISTS ioc_types (
-    type_id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
     category VARCHAR(50) NOT NULL
 );
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS ioc_types (
 -- Create IOCs table --
 CREATE TABLE IF NOT EXISTS iocs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type_id INTEGER REFERENCES ioc_types(type_id),
+    type_id INTEGER REFERENCES ioc_types(id),
     value VARCHAR(255) NOT NULL,
     value_hash VARCHAR(64) NOT NULL,
     tlp_level VARCHAR(20) DEFAULT 'WHITE',

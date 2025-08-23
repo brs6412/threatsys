@@ -1,10 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .config import get_settings
-from .database import engine
-from .models import Base
-from .routers import organizations, users, iocs
+from src.config import get_settings
+from src.routers import organizations, users, iocs
+from src.exceptions import setup_handlers
 
 settings = get_settings()
 
@@ -17,10 +16,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+setup_handlers(app)
+
 app.include_router(organizations.router, prefix="/organizations", tags=["Organizations"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(iocs.router, prefix="/iocs", tags=["IOCs"])
 
-@app.get("/")
+@app.get("/healthy")
 async def root():
     return {"message": "Welcome to Threatsys API"}
