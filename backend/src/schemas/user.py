@@ -18,17 +18,14 @@ class UserCreate(UserBase):
 # Updating a user
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    first_name: str = None
-    last_name: str = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     organization_id: Optional[uuid.UUID] = None
     role_id: Optional[int] = None
 
 # Get user data
 class UserResponse(UserBase):
-    model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     created_at: datetime
     last_login: Optional[datetime] = None
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
