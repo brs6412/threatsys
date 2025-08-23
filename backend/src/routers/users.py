@@ -5,11 +5,11 @@ import uuid
 
 from src.dependencies import get_database
 from src.services.user_service import UserService
-from src.schemas.user import UserCreate, UserUpdate, UserResponse
+from src.schemas.user import UserCreate, UserUpdate, UserResponse, UserBase
 
 router = APIRouter()
 
-@router.get("/", response_model=List[UserResponse])
+@router.get("/", response_model=List[UserBase])
 async def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
@@ -35,17 +35,9 @@ async def get_user(user_id: uuid.UUID, db: AsyncSession = Depends(get_database))
 @router.post("/", response_model=UserResponse)
 async def create_user(user_data: UserCreate, db: AsyncSession = Depends(get_database)):
     """Create a new user"""
-    # Create new user
-    db_user = UserCreate(
-        email=user_data.email,
-        organization_id=user_data.organization_id,
-        role_id=user_data.role_id
-    )
-    
-    db.add(db_user)
-    await db.commit()
-    await db.refresh(db_user)
-    return db_user
+    user_service = UserService(db)
+    user = await user_service.create_user(user_data)
+    return user
 
 @router.put("/{user_id}", response_model=UserResponse)
 async def update_user(
