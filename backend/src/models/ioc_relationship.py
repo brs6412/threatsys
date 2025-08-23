@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
-from ..database import Base
+from src.database import Base
 
 class IOCRelationship(Base):
     __tablename__ = "ioc_relationships"

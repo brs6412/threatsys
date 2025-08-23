@@ -1,44 +1,53 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, constr
+from typing import Optional, Dict
 from datetime import datetime
-from typing import Optional, Dict, Any
-from uuid import UUID
+import uuid
 
-# Base schema
 class IOCBase(BaseModel):
     type_id: int
     value: str
     value_hash: str
-    tlp_level: str = "WHITE"
-    active: bool = True
-    metadata_: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    tlp_level: Optional[str] = "WHITE"
+    metadata_: Optional[Dict] = {}
+    active: Optional[bool] = True
+    source_org_id: Optional[uuid.UUID] = None
 
-# Creating an IOC
+    model_config = ConfigDict(from_attributes=True)
+
 class IOCCreate(IOCBase):
-    source_org_id: Optional[UUID] = None
-    created_by: Optional[UUID] = None
+    created_by: uuid.UUID  # required when creating
 
-# Updating an IOC
 class IOCUpdate(BaseModel):
     type_id: Optional[int] = None
     value: Optional[str] = None
     value_hash: Optional[str] = None
     tlp_level: Optional[str] = None
+    metadata_: Optional[Dict] = None
     active: Optional[bool] = None
-    metadata_: Optional[Dict[str, Any]] = None
-    last_seen: Optional[datetime] = None
+    source_org_id: Optional[uuid.UUID] = None
 
-# Get IOC data
-class IOCResponse(IOCBase):
     model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
-    received_at: datetime
-    last_seen: datetime
-    source_org_id: Optional[UUID] = None
-    created_by: Optional[UUID] = None
+
+class IOCResponse(IOCBase):
+    id: uuid.UUID
+    created_by: Optional[uuid.UUID] = None
     created_at: datetime
     updated_at: datetime
+    last_seen: datetime
+    received_at: datetime
 
-# Schema for IOC with relationships
-class IOCWithRelationships(IOCResponse):
-    pass
+    model_config = ConfigDict(from_attributes=True)
+
+class IOCSearchParams(BaseModel):
+    value: Optional[str] = None
+    value_hash: Optional[str] = None
+    value_contains: Optional[str] = None
+    type_id: Optional[int] = None
+    tlp_level: Optional[str] = None
+    active: Optional[bool] = None
+    source_org_id: Optional[uuid.UUID] = None
+    created_by: Optional[uuid.UUID] = None
+    created_after: Optional[datetime] = None
+    created_before: Optional[datetime] = None
+    last_seen_after: Optional[datetime] = None
+    last_seen_before: Optional[datetime] = None
