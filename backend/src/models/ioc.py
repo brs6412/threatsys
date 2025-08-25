@@ -11,7 +11,7 @@ class IOC(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
 
-    type_id = Column(Integer, ForeignKey("ioc_types.type_id"), nullable=False)
+    type_id = Column(Integer, ForeignKey("ioc_types.id"), nullable=False)
 
     value = Column(String(255), nullable=False)
     value_hash = Column(String(64), nullable=False, index=True)

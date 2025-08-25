@@ -5,7 +5,7 @@ import uuid
 
 from src.dependencies import get_database
 from src.services.ioc_service import IOCService
-from src.schemas.ioc import IOCCreate, IOCUpdate, IOCSearchParams, IOCResponse
+from src.schemas.ioc import IOCCreate, IOCUpdate, IOCSearchParams, IOCResponse, IOCDetailResponse
 
 router = APIRouter()
 
@@ -20,13 +20,41 @@ async def get_iocs(
 ):
     """Get all IOCs with pagination and filtering"""
     ioc_service = IOCService(db)
-    return await ioc_service.get_iocs(skip=skip, limit=limit, active=active, tlp_level=tlp_level, type_id=type_id)
+    iocs = await ioc_service.get_iocs(skip=skip, limit=limit, active=active, tlp_level=tlp_level, type_id=type_id)
+    return [
+        IOCResponse(
+            id=ioc.id,
+            value=ioc.value,
+            value_hash=ioc.value_hash,
+            tlp_level=ioc.tlp_level,
+            active=ioc.active,
+            source_organization=ioc.source_organization.name if ioc.source_organization else None,
+            creator=ioc.creator.email if ioc.creator else None,
+            last_seen=ioc.last_seen,
+            ioc_type=ioc.ioc_type
+        )
+        for ioc in iocs
+    ]
 
-@router.get("/{ioc_id}", response_model=IOCResponse)
+@router.get("/{ioc_id}", response_model=IOCDetailResponse)
 async def get_ioc(ioc_id: uuid.UUID, db: AsyncSession = Depends(get_database)):
     """Get a specific IOC by ID"""
     ioc_service = IOCService(db)
-    return await ioc_service.create_ioc(ioc_id)
+    ioc = await ioc_service.get_ioc(ioc_id)
+    return IOCDetailResponse(
+            id=ioc.id,
+            value=ioc.value,
+            value_hash=ioc.value_hash,
+            tlp_level=ioc.tlp_level,
+            active=ioc.active,
+            source_organization=ioc.source_organization.name if ioc.source_organization else None,
+            creator=ioc.creator.email if ioc.creator else None,
+            created_at=ioc.created_at,
+            updated_at=ioc.updated_at,
+            last_seen=ioc.last_seen,
+            received_at=ioc.received_at,
+            ioc_type=ioc.ioc_type
+        )
 
 @router.post("/", response_model=IOCResponse, status_code=201)
 async def create_ioc(ioc_data: IOCCreate, db: AsyncSession = Depends(get_database)):

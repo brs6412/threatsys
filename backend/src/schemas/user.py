@@ -3,19 +3,19 @@ from datetime import datetime
 from typing import Optional
 import uuid
 
-# Base schema
+from src.schemas.organization import OrganizationResponse
+from src.schemas.role import RoleBase
+
 class UserBase(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
-    organization: Optional[str] = None
     role_id: int = 3
+    organization_id: Optional[uuid.UUID] = None
 
-# Creating a user
 class UserCreate(UserBase):
-    pass
+    password: str
 
-# Updating a user
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     first_name: Optional[str] = None
@@ -23,9 +23,26 @@ class UserUpdate(BaseModel):
     organization_id: Optional[uuid.UUID] = None
     role_id: Optional[int] = None
 
-# Get user data
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     id: uuid.UUID
+    email: EmailStr
+    first_name: str
+    last_name: str
+    role: str
+    organization: Optional[str] = None
     created_at: datetime
     last_login: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserDetailResponse(BaseModel):
+    id: uuid.UUID
+    email: EmailStr
+    first_name: str
+    last_name: str
+    role: RoleBase
+    organization: Optional[OrganizationResponse]
+    created_at: datetime
+    last_login: Optional[datetime] = None
+
     model_config = ConfigDict(from_attributes=True)

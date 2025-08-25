@@ -5,11 +5,11 @@ import uuid
 
 from src.dependencies import get_database
 from src.services.user_service import UserService
-from src.schemas.user import UserCreate, UserUpdate, UserResponse, UserBase
+from src.schemas.user import UserCreate, UserUpdate, UserResponse, UserDetailResponse
 
 router = APIRouter()
 
-@router.get("/", response_model=List[UserBase])
+@router.get("/", response_model=List[UserResponse])
 async def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
@@ -23,9 +23,22 @@ async def get_users(
         limit=limit,
         organization_id=organization_id
     )
-    return users
 
-@router.get("/{user_id}", response_model=UserResponse)
+    return [
+        UserResponse(
+            id=user.id,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            role=user.role.name,
+            organization=user.organization.name if user.organization else None,
+            created_at=user.created_at,
+            last_login=user.last_login,
+        )
+        for user in users
+    ]
+
+@router.get("/{user_id}", response_model=UserDetailResponse)
 async def get_user(user_id: uuid.UUID, db: AsyncSession = Depends(get_database)):
     """Get a specific user by ID with role and organization details"""
     user_service = UserService(db)

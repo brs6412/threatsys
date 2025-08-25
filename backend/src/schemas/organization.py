@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
+import uuid
 
 class OrganizationBase(BaseModel):
     name: str
@@ -14,9 +14,13 @@ class OrganizationUpdate(BaseModel):
     name: Optional[str] = None
     tier: Optional[str] = None
 
-class OrganizationResponse(OrganizationBase):
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
+class OrganizationDetailResponse(OrganizationBase):
+    id: uuid.UUID
     created_at: datetime
     updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class OrganizationResponse(BaseModel):
+    id: uuid.UUID
+    name: str

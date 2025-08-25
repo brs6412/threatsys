@@ -1,7 +1,11 @@
-from pydantic import BaseModel, ConfigDict, constr
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict
 from datetime import datetime
 import uuid
+
+from src.schemas.ioc_type import IOCTypeResponse
+from src.schemas.organization import OrganizationResponse
+from src.schemas.user import UserResponse
 
 class IOCBase(BaseModel):
     type_id: int
@@ -15,7 +19,7 @@ class IOCBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class IOCCreate(IOCBase):
-    created_by: uuid.UUID  # required when creating
+    created_by: uuid.UUID
 
 class IOCUpdate(BaseModel):
     type_id: Optional[int] = None
@@ -28,13 +32,33 @@ class IOCUpdate(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class IOCResponse(IOCBase):
+class IOCResponse(BaseModel):
     id: uuid.UUID
-    created_by: Optional[uuid.UUID] = None
+    value: str
+    value_hash: str
+    tlp_level: str
+    active: bool
+    source_organization: Optional[str] = None
+    creator: Optional[str] = None
+    last_seen: datetime
+    ioc_type: IOCTypeResponse
+
+    model_config = ConfigDict(from_attributes=True)
+
+class IOCDetailResponse(BaseModel):
+    id: uuid.UUID
+    value: str
+    value_hash: str
+    tlp_level: str
+    metadata_: Optional[Dict] = None
+    active: bool
+    source_organization: Optional[str] = None
+    creator: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     last_seen: datetime
     received_at: datetime
+    ioc_type: IOCTypeResponse
 
     model_config = ConfigDict(from_attributes=True)
 

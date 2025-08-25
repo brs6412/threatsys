@@ -5,7 +5,12 @@ import uuid
 
 from src.dependencies import get_database
 from src.services.organization_service import OrganizationService
-from src.schemas.organization import OrganizationCreate, OrganizationUpdate, OrganizationResponse
+from src.schemas.organization import (
+    OrganizationCreate, 
+    OrganizationUpdate, 
+    OrganizationResponse, 
+    OrganizationDetailResponse
+)
 
 router = APIRouter()
 
@@ -23,7 +28,7 @@ async def get_organizations(
     )
     return orgs
 
-@router.get("/{org_id}", response_model=OrganizationResponse)
+@router.get("/{org_id}", response_model=OrganizationDetailResponse)
 async def get_organization(org_id: uuid.UUID, db: AsyncSession = Depends(get_database)):
     """Get a specific organization by ID"""
     org_service = OrganizationService(db)
