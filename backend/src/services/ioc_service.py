@@ -31,6 +31,36 @@ class IOCService:
             raise IOCNotFoundException('ID', str(ioc_id))
 
         return ioc
+    
+    async def get_iocs(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        active: Optional[bool] = None,
+        tlp_level: Optional[str] = None,
+        type_id: Optional[int] = None,
+    ) -> List[IOC]:
+        statement = (
+            select(IOC)
+            .options(
+                joinedload(IOC.ioc_type),
+                joinedload(IOC.source_organization),
+                joinedload(IOC.creator)
+            )
+        )
+
+        if active is not None:
+            statement = statement.where(IOC.active == active)
+
+        if tlp_level is not None:
+            statement = statement.where(IOC.tlp_level == tlp_level)
+
+        if type_id is not None:
+            statement = statement.where(IOC.type_id == type_id)
+
+        statement = statement.offset(skip).limit(limit)
+        result = await self.db.execute(statement)
+        return result.scalars().all()
 
     async def get_by_value(self, value: str) -> Optional[IOC]:
         value_hash = sha256_hash(value)
@@ -49,7 +79,7 @@ class IOCService:
         
         return ioc
 
-    async def get_iocs(
+    async def search_iocs(
         self,
         params: IOCSearchParams,
         skip: int = 0,
