@@ -6,9 +6,9 @@ from datetime import datetime
 import uuid
 
 from src.models.ioc import IOC
-from src.schemas.ioc import IOCCreate, IOCUpdate, IOCSearchParams
+from src.schemas.ioc import IOCCreate, IOCUpdate, IOCSearchParams, IOCLookupByValue
 from src.exceptions import IOCNotFoundException
-from src.utils.security import sha256_hash
+from backend.src.utils.ioc_utils import sha256_hash
 
 class IOCService:
     def __init__(self, db: AsyncSession):

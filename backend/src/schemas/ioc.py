@@ -10,7 +10,6 @@ from src.schemas.user import UserResponse
 class IOCBase(BaseModel):
     type_id: int
     value: str
-    value_hash: str
     tlp_level: Optional[str] = "WHITE"
     metadata_: Optional[Dict] = {}
     active: Optional[bool] = True
@@ -24,7 +23,6 @@ class IOCCreate(IOCBase):
 class IOCUpdate(BaseModel):
     type_id: Optional[int] = None
     value: Optional[str] = None
-    value_hash: Optional[str] = None
     tlp_level: Optional[str] = None
     metadata_: Optional[Dict] = None
     active: Optional[bool] = None
@@ -75,3 +73,7 @@ class IOCSearchParams(BaseModel):
     created_before: Optional[datetime] = None
     last_seen_after: Optional[datetime] = None
     last_seen_before: Optional[datetime] = None
+
+class IOCLookupByValue(BaseModel):
+    type_id: int
+    value: str
