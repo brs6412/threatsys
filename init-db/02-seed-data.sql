@@ -22,9 +22,18 @@ VALUES
 -- Insert IOC types --
 INSERT INTO ioc_types (name, category)
 VALUES
-  ('IP Address', 'Network'),
-  ('Domain', 'Network'),
-  ('File Hash', 'File');
+  ('ipv4_addr', 'Network'),
+  ('ipv6_addr', 'Network'), 
+  ('domain', 'Network'),
+  ('email', 'Network'),
+  ('file_hash_md5', 'File'),
+  ('file_hash_sha1', 'File'),
+  ('file_hash_sha256', 'File'),
+  ('file_hash_sha512', 'File'),
+  ('url', 'Network'),
+  ('mutex', 'System'), 
+  ('registry_key', 'System'),
+  ('yara_rule', 'Detection');
 
 -- Insert IOCs --
 INSERT INTO iocs (id, type_id, value, value_hash, active, source_org_id, created_by)
