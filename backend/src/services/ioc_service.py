@@ -8,11 +8,13 @@ import uuid
 from src.models.ioc import IOC
 from src.schemas.ioc import IOCCreate, IOCUpdate, IOCSearchParams, IOCLookupByValue
 from src.exceptions import IOCNotFoundException
-from backend.src.utils.ioc_utils import sha256_hash
+from src.utils.ioc_utils import IOCUtils
+from src.utils.ioc_validator import IOCValidator
 
 class IOCService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.validator = IOCValidator(db)
 
     async def get_ioc(self, ioc_id: uuid.UUID, include_relationships: bool = False) -> Optional[IOC]:
         statement = (
@@ -62,13 +64,21 @@ class IOCService:
         result = await self.db.execute(statement)
         return result.scalars().all()
 
-    async def get_by_value(self, value: str) -> Optional[IOC]:
-        value_hash = sha256_hash(value)
-        return await self.get_by_hash(value_hash)
+    async def get_by_value(self, type_id: int, value: str) -> Optional[IOC]:
+        try:
+            _, value_hash = await self.validator.validate_and_normalize_ioc(type_id, value)
+            return await self.get_by_hash(value_hash)
+        except ValueError:
+            return None
 
     async def get_by_hash(self, value_hash: str) -> Optional[IOC]:
         statement = (
             select(IOC)
+            .options(
+                joinedload(IOC.ioc_type),
+                joinedload(IOC.source_organization),
+                joinedload(IOC.creator)
+            )
             .where(IOC.value_hash == value_hash)
         )
         result = await self.db.execute(statement)
@@ -90,8 +100,17 @@ class IOCService:
         )
 
         if params.value:
-            value_hash = sha256_hash(params.value)
-            statement = statement.where(IOC.value_hash == value_hash)
+            if not params.type_id:
+                raise ValueError("type_id is for type-aware looking")
+            
+            try:
+                normalized_value, value_hash = self.validator.validate_and_normalize_ioc(
+                    params.type_id, params.value
+                )
+                statement = statement.where(IOC.value_hash == value_hash)
+            except ValueError:
+                statement = statement.where(IOC.id == None)
+
         if params.value_hash:
             statement = statement.where(IOC.value_hash == params.value_hash)
         if params.value_contains:
@@ -124,32 +143,31 @@ class IOCService:
         result = await self.db.execute(statement)
         return result.scalars().all()
     
-    async def batch_lookup_by_values(self, values: List[str]) -> Dict[str, IOC]:
-        if not values:
+    async def batch_lookup_by_values(self, lookups: List[IOCLookupByValue]) -> Dict[str, IOC]:
+        if not lookups:
             return {}
-        value_map = {value: sha256_hash(value) for value in values}
-        results: Dict[str, IOC] = {}
-        chunk_size = 1000
-        items = list(value_map.items())
-        for i in range(0, len(items), chunk_size):
-            chunk = values[i:i + chunk_size]
-            chunk_hashes = [v for _, v in chunk]
-
-            statement = (
-                select(IOC)
-                .options(
-                    joinedload(IOC.ioc_type),
-                    joinedload(IOC.source_organization),
-                    joinedload(IOC.creator)
+        
+        value_to_hash = {}
+        for lookup in lookups:
+            try:
+                normalized_value, value_hash = await self.validator.validate_and_normalize_ioc(
+                    lookup.type_id, lookup.value
                 )
-                .where(IOC.value_hash.in_(chunk_hashes))
-            )
-            result = await self.db.execute(statement)
+                value_to_hash[lookup.value] = value_hash
+            except ValueError:
+                continue
 
-            for ioc in result.scalars().all():
-                for original_value, hash_ in chunk:
-                    if ioc.value_hash == hash_:
-                        results[original_value] = ioc
+        if not value_to_hash:
+            return {}
+        
+        hashes = list(value_to_hash.values())
+        hash_to_ioc = {ioc.value_hash: ioc for ioc in await self.batch_lookup_by_hashes(hashes)}
+
+        results = {}
+        for orig, value_hash in value_to_hash.items():
+            if value_hash in hash_to_ioc:
+                results[orig] = hash_to_ioc[value_hash]
+        
         return results
     
     async def batch_lookup_by_hashes(self, value_hashes: List[str]) -> List[IOC]:
@@ -173,7 +191,9 @@ class IOCService:
         return results
     
     async def create_ioc(self, ioc_data: IOCCreate, created_by: uuid.UUID) -> IOC:
-        value_hash = sha256_hash(ioc_data.value)
+        normalized_value, value_hash = await self.validator.validate_and_normalize_ioc(
+            ioc_data.type_id, ioc_data.value
+        )
         existing = None
         try:
             existing = await self.get_by_hash(value_hash)
@@ -188,9 +208,9 @@ class IOCService:
 
         db_ioc = IOC(
             type_id=ioc_data.type_id,
-            value=ioc_data.value,
+            value=normalized_value,
             value_hash=value_hash,
-            tlp_level=ioc_data.tlp_level.value,
+            tlp_level=ioc_data.tlp_level,
             active=ioc_data.active,
             metadata_=ioc_data.metadata_,
             source_org_id=ioc_data.source_org_id,
@@ -210,7 +230,18 @@ class IOCService:
         update_data = ioc_data.model_dump(exclude_unset=True, by_alias=True)
 
         if "value" in update_data:
-            update_data["value_hash"] = sha256_hash(update_data["value"])
+            type_id = update_data.get("type_id", ioc.type_id)
+            normalized_value, value_hash = await self.validator.validate_and_normalize_ioc(
+                type_id, update_data["value"]
+            )
+            update_data["value"] = normalized_value
+            update_data["value_hash"] = value_hash
+        elif "type_id" in update_data and update_data["type_id"] != ioc.type_id:
+            normalized_value, value_hash = await self.validator.validate_and_normalize_ioc(
+                update_data["type_id"], ioc.value
+            )
+            update_data["value"] = normalized_value
+            update_data["value_hash"] = value_hash
 
         for f, v in update_data.items():
             setattr(ioc, f, v)

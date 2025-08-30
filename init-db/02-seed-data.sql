@@ -39,8 +39,8 @@ VALUES
 INSERT INTO iocs (id, type_id, value, value_hash, active, source_org_id, created_by)
 VALUES
   ('dddddddd-dddd-dddd-dddd-dddddddddddd', 1, '192.168.1.100', 'abc123def4567890abc123def4567890abc123def4567890abc123def4567890', true, '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 2, 'malicious.com', 'def456abc1237890def456abc1237890def456abc1237890def456abc1237890', true, '22222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
-  ('ffffffff-ffff-ffff-ffff-ffffffffffff', 3, 'e99a18c428cb38d5f260853678922e03', '7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456', false, '33333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc');
+  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 3, 'malicious.com', 'def456abc1237890def456abc1237890def456abc1237890def456abc1237890', true, '22222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+  ('ffffffff-ffff-ffff-ffff-ffffffffffff', 5, 'e99a18c428cb38d5f260853678922e03', 'e99a18c428cb38d5f260853678922e03', false, '33333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc');
 
 -- Insert IOC relationships --
 INSERT INTO ioc_relationships (id, source_id, target_id, relationship_type, confidence_score)

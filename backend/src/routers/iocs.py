@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 
 from src.dependencies import get_database
 from src.services.ioc_service import IOCService
-from src.schemas.ioc import IOCCreate, IOCUpdate, IOCSearchParams, IOCResponse, IOCDetailResponse
+from src.schemas.ioc import (
+    IOCCreate, IOCUpdate, IOCSearchParams, IOCResponse, IOCDetailResponse, IOCLookupByValue
+)
 
 router = APIRouter()
 
@@ -88,3 +90,23 @@ async def search_iocs(
     """Search IOCs by value"""
     ioc_service = IOCService(db)
     return await ioc_service.search_iocs(params=search, skip=skip, limit=limit)
+
+@router.get("/by-typed-value/{type_id}/{value}") # , response_model=IOCResponse
+async def get_ioc_by_typed_value(
+    type_id: int,
+    value: str,
+    db: AsyncSession = Depends(get_database)
+):
+    """Get IOC by value with type-aware hash computation"""
+    service = IOCService(db)
+    return await service.get_by_value(type_id, value)
+
+@router.post("/batch-lookup-typed", response_model=Dict[str, IOCResponse])
+async def batch_lookup_by_typed_values(
+    lookups: List[IOCLookupByValue],
+    db: AsyncSession = Depends(get_database)
+):
+    """Batch lookup IOCs by values with type-aware hash computation"""
+    service = IOCService(db)
+    results = await service.batch_lookup_by_typed_values(lookups)
+    return results
