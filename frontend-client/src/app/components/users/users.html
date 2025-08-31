@@ -1,20 +1,76 @@
-<div *ngIf="loading">Loading users...</div>
-<div *ngIf="error">{{ error }}</div>
+<div class="users-container">
+    <div class="header">
+        <h1>User Management</h1>
+        <button mat-raised-button color="primary" (click)="openUserDialog()">
+            <mat-icon>add</mat-icon>
+            Add User
+        </button>
+    </div>
 
-<table *ngIf="!loading && !error">
-    <thead>
-        <tr>
-            <th>name</th>
-            <th>email</th>
-            <th>organization id</th>
-            <th>role</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let user of users">
-            <td>{{ user.first_name }} {{ user.last_name }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.role }}</td>
-        </tr>
-    </tbody>
-</table>
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+    </div>
+
+    <div *ngIf="!loading" class="table-container">
+        <table mat-table [dataSource]="users" class="users-table">
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let user">{{ user.id.substring(0, 8) }}...</td>
+            </ng-container>
+
+            <ng-container matColumnDef="first_name">
+                <th mat-header-cell *matHeaderCellDef>First Name</th>
+                <td mat-cell *matCellDef="let user">{{ user.first_name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="last_name">
+                <th mat-header-cell *matHeaderCellDef>Last Name</th>
+                <td mat-cell *matCellDef="let user">{{ user.last_name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="role">
+                <th mat-header-cell *matHeaderCellDef>Role</th>
+                <td mat-cell *matCellDef="let user">{{ user.role }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="organization">
+                <th mat-header-cell *matHeaderCellDef>Organization</th>
+                <td mat-cell *matCellDef="let user">{{ user.organization || 'None' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+                <th mat-header-cell *matHeaderCellDef>Created</th>
+                <td mat-cell *matCellDef="let user">
+                    {{ user.created_at | date:'short' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="last_login">
+                <th mat-header-cell *matHeaderCellDef>Last Login</th>
+                <td mat-cell *matCellDef="let user">
+                    {{ user.last_login ? (user.last_login | date:'short') : 'Never' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let user">
+                    <button mat-icon-button color="primary" (click)="openUserDialog(user)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteUser(user.id)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+</div>

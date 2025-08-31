@@ -1,2 +1,82 @@
-<p>Message from the api: {{ message }}</p>
-<mat-slide-toggle>Toggle me!</mat-slide-toggle>
+<div class="home-container">
+    <h1>ThreatSys Dashboard</h1>
+
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Loading dashboard data...</p>
+    </div>
+
+    <div *ngIf="!loading" class="dashboard-grid">
+        <mat-card class="dashboard-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>people</mat-icon>
+                    Users
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ userCount }}</div>
+                <p>Total registered users</p>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-raised-button color="primary" routerLink="/users">
+                    Manage Users
+                </button>
+            </mat-card-actions>
+        </mat-card>
+
+        <mat-card class="dashboard-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>security</mat-icon>
+                    IOCs
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">{{ iocCount }}</div>
+                <p>Indicators of Compromise</p>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-raised-button color="primary" routerLink="/iocs">
+                    Manage IOCs
+                </button>
+            </mat-card-actions>
+        </mat-card>
+
+        <mat-card class="dashboard-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>analytics</mat-icon>
+                    Analytics
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">-</div>
+                <p>Coming soon</p>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-raised-button disabled>
+                    View Analytics
+                </button>
+            </mat-card-actions>
+        </mat-card>
+
+        <mat-card class="dashboard-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>notification_important</mat-icon>
+                    Alerts
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-value">0</div>
+                <p>Active alerts</p>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-raised-button disabled>
+                    View Alerts
+                </button>
+            </mat-card-actions>
+        </mat-card>
+    </div>
+</div>

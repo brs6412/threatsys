@@ -1,24 +1,67 @@
 import { Component, OnInit } from '@angular/core';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CommonModule } from '@angular/common';
-import { Api } from '../../services/api';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink } from '@angular/router';
+import { ApiService } from '../../services/api';
 
 @Component({
   selector: 'app-home',
-  standalone: true,
-  imports: [CommonModule, MatSlideToggleModule],
   templateUrl: './home.html',
-  styleUrl: './home.scss'
+  styleUrls: ['./home.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    RouterLink
+  ]
 })
-export class Home {
-  message = '';
+export class Home implements OnInit {
+  userCount = 0;
+  iocCount = 0;
+  loading = true;
 
-  constructor(private api: Api) { }
+  constructor(private apiService: ApiService) { }
 
-  ngOnInit(): void {
-    this.api.getHomepage().subscribe({
-      next: (data) => this.message = data.message,
-      error: (err) => console.error(err)
+  ngOnInit() {
+    this.loadDashboardData();
+  }
+
+  loadDashboardData() {
+    this.loading = true;
+
+    this.apiService.getUsers().subscribe({
+      next: (users) => {
+        this.userCount = users.length;
+        this.checkLoadingComplete();
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.checkLoadingComplete();
+      }
     });
+
+    this.apiService.getIOCs().subscribe({
+      next: (iocs) => {
+        this.iocCount = iocs.length;
+        this.checkLoadingComplete();
+      },
+      error: (error) => {
+        console.error('Error loading IOCs:', error);
+        this.checkLoadingComplete();
+      }
+    });
+  }
+
+  private checkLoadingComplete() {
+    // Simple loading state management
+    setTimeout(() => {
+      this.loading = false;
+    }, 500);
   }
 }

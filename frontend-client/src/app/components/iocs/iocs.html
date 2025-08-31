@@ -1,21 +1,86 @@
-<div *ngIf="loading">Loading IOCs...</div>
-<div *ngIf="error">{{ error }}</div>
+<div class="iocs-container">
+    <div class="header">
+        <h1>IOC Management</h1>
+        <button mat-raised-button color="primary" (click)="openIocDialog()">
+            <mat-icon>add</mat-icon>
+            Add IOC
+        </button>
+    </div>
 
-<table *ngIf="!loading && !error">
-    <thead>
-        <tr>
-            <th>Value</th>
-            <th>TLP Level</th>
-            <th>Type ID</th>
-            <th>Active</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let ioc of iocs">
-            <td>{{ ioc.value }}</td>
-            <td>{{ ioc.tlp_level }}</td>
-            <td>{{ ioc.type_id }}</td>
-            <td>{{ ioc.active }}</td>
-        </tr>
-    </tbody>
-</table>
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+    </div>
+
+    <div *ngIf="!loading" class="table-container">
+        <table mat-table [dataSource]="iocs" class="iocs-table">
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let ioc">{{ ioc.id.substring(0, 8) }}...</td>
+            </ng-container>
+
+            <ng-container matColumnDef="value">
+                <th mat-header-cell *matHeaderCellDef>Value</th>
+                <td mat-cell *matCellDef="let ioc" class="indicator-cell">
+                    <code>{{ ioc.value }}</code>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="ioc_type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let ioc">
+                    <mat-chip>{{ ioc.ioc_type.name }}</mat-chip>
+                    <div *ngIf="ioc.ioc_type.category" class="category-text">
+                        {{ ioc.ioc_type.category }}
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="tlp_level">
+                <th mat-header-cell *matHeaderCellDef>TLP Level</th>
+                <td mat-cell *matCellDef="let ioc">
+                    <mat-chip [color]="getTLPColor(ioc.tlp_level)" selected>
+                        TLP:{{ ioc.tlp_level | uppercase }}
+                    </mat-chip>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="active">
+                <th mat-header-cell *matHeaderCellDef>Active</th>
+                <td mat-cell *matCellDef="let ioc">
+                    <mat-icon [style.color]="ioc.active ? 'green' : 'red'">
+                        {{ ioc.active ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="source_organization">
+                <th mat-header-cell *matHeaderCellDef>Source Org</th>
+                <td mat-cell *matCellDef="let ioc" class="org-cell">
+                    {{ ioc.source_organization || 'Unknown' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="last_seen">
+                <th mat-header-cell *matHeaderCellDef>Last Seen</th>
+                <td mat-cell *matCellDef="let ioc">
+                    {{ ioc.last_seen | date:'short' }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let ioc">
+                    <button mat-icon-button color="primary" (click)="openIocDialog(ioc)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteIOC(ioc.id)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+</div>
