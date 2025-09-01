@@ -11,6 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService, UserResponse, UserDetailResponse, UserCreate, UserUpdate, OrganizationResponse, RoleBase } from '../../services/api';
+import { UserDialog } from './user-dialog';
 
 @Component({
   selector: 'app-users',
@@ -104,5 +105,18 @@ export class Users implements OnInit {
         }
       });
     }
+  }
+
+  openUserDialog(user?: any) {
+    const dialogRef = this.dialog.open(UserDialog, {
+      data: user || null
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // handle created/updated user
+        console.log('Dialog result:', result);
+      }
+    });
   }
 }
